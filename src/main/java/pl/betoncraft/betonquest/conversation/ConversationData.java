@@ -1,17 +1,17 @@
 /**
  * BetonQuest - advanced quests for Bukkit
  * Copyright (C) 2016  Jakub "Co0sh" Sapalski
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -20,6 +20,8 @@ package pl.betoncraft.betonquest.conversation;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import java.util.HashSet;
+import java.util.Set;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -34,7 +36,7 @@ import pl.betoncraft.betonquest.utils.Debug;
 
 /**
  * Represents the data of the conversation.
- * 
+ *
  * @author Jakub Sapalski
  */
 public class ConversationData {
@@ -56,7 +58,7 @@ public class ConversationData {
 
 	/**
 	 * Loads conversation from package.
-	 * 
+	 *
 	 * @param pack
 	 *            the package containing this conversation
 	 * @param name
@@ -197,7 +199,7 @@ public class ConversationData {
 	/**
 	 * Gets the prefix of the conversation. If provided NPC option does not
 	 * define one, the global one from the conversation is returned instead.
-	 * 
+	 *
 	 * @param lang
 	 *            language of the prefix
 	 * @param option
@@ -257,14 +259,14 @@ public class ConversationData {
 	public boolean isMovementBlocked() {
 		return blockMovement;
 	}
-	
+
 	/**
 	* @return the conversationIO
 	*/
 	public String getConversationIO() {
 		return convIO;
 	}
-	
+
 	public String getText(String lang, String option, OptionType type) {
 		Option o = null;
 		if (type == OptionType.NPC) {
@@ -283,7 +285,7 @@ public class ConversationData {
 	public String getPackName() {
 		return pack.getName();
 	}
-	
+
 	public ConditionID[] getConditionIDs(String option, OptionType type) {
 		HashMap<String, Option> options;
 		if (type == OptionType.NPC) {
@@ -293,7 +295,7 @@ public class ConversationData {
 		}
 		return options.get(option).getConditions();
 	}
-	
+
 	public EventID[] getEventIDs(String option, OptionType type) {
 		HashMap<String, Option> options;
 		if (type == OptionType.NPC) {
@@ -303,7 +305,7 @@ public class ConversationData {
 		}
 		return options.get(option).getEvents();
 	}
-	
+
 	public String[] getPointers(String option, OptionType type) {
 		HashMap<String, Option> options;
 		if (type == OptionType.NPC) {
@@ -318,7 +320,7 @@ public class ConversationData {
 	 * Checks if external pointers point to valid options. It cannot be checked
 	 * when constructing ConversationData objects because conversations that are
 	 * being pointed to may not yet exist.
-	 * 
+	 *
 	 * This method should be called when all conversations are loaded. It will
 	 * not throw any exceptions, just display errors in the console.
 	 */
@@ -399,18 +401,13 @@ public class ConversationData {
 			} else {
 			    throw new InstructionParseException(String.format("Text is not defined in '%s' %s.", name, visibleType));
 			}
-			ArrayList<String> variables = new ArrayList<>();
+			Set<String> variables = new HashSet<>();
 			for (String theText : text.values()) {
 				if (theText == null || theText.equals(""))
 					throw new InstructionParseException("Text not defined in " + visibleType + " " + name);
 				// variables are possibly duplicated because there probably is
 				// the same variable in every language
-				ArrayList<String> possiblyDuplicatedVariables = BetonQuest.resolveVariables(theText);
-				for (String possiblyDuplicatedVariable : possiblyDuplicatedVariables) {
-					if (variables.contains(possiblyDuplicatedVariable))
-						continue;
-					variables.add(possiblyDuplicatedVariable);
-				}
+        variables.addAll(BetonQuest.resolveVariables(theText));
 			}
 			for (String variable : variables) {
 				try {

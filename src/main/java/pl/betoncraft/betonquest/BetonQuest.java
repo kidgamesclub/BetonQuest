@@ -21,10 +21,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
 import org.bstats.Metrics;
@@ -211,6 +215,11 @@ public final class BetonQuest extends JavaPlugin {
 	private Map<String, ConversationData> conversations = new HashMap<>();
 	private Map<VariableID, Variable> variables = new HashMap<>();
   private List<ConversationFilter> messageFilters = new ArrayList<>();
+
+  /**
+   * Takes one character on either side of the variable to support checking for liquify placeholders
+   */
+  private static final Pattern VARIABLE_PATTERN = Pattern.compile("%([A-Za-z._-][0-9A-Za-z._-]+)%");
 
   public BetonQuest() {
 	    instance = this;
@@ -1054,36 +1063,48 @@ public final class BetonQuest extends JavaPlugin {
 	 *            text from which the variables will be resolved
 	 * @return the list of unique variable instructions
 	 */
-	public static ArrayList<String> resolveVariables(String text) {
-		ArrayList<String> variables = new ArrayList<>();
-		boolean inside = false;
-		char[] charArr = text.toCharArray();
-		StringBuilder variable = new StringBuilder();
-		char prev = ' ';
-		for (int i = 0; i < text.length(); i++) {
-			if (inside) {
-				if (charArr[i] == ' ') {
-					// it's not a variable if it contains a space
-					inside = false;
-					variable = new StringBuilder();
-				}
-				variable.append(charArr[i]);
-				if (charArr[i] == '%') {
-					// end of the variable
-					inside = false;
-					String finalVariable = variable.toString();
-					variable = new StringBuilder();
-					if (!variables.contains(finalVariable)) {
-						variables.add(finalVariable);
-					}
-				}
-      } else if (prev != '{' && charArr[i] == '%') {
-        inside = true;
-        variable.append('%');
+	public static Set<String> resolveVariables(String text) {
+    final Matcher matcher = VARIABLE_PATTERN.matcher(text);
+    Set<String> variables = new HashSet<>();
+    while (matcher.find()) {
+      if (matcher.start() > 0) {
+        //Check the character before the match:
+        if (text.charAt(matcher.start() - 1) == '{') {
+          continue;
+        }
       }
-      prev = charArr[i];
-		}
-		return variables;
+      variables.add(matcher.group(1));
+    }
+    return variables;
+
+//		boolean inside = false;
+//		char[] charArr = text.toCharArray();
+//		StringBuilder variable = new StringBuilder();
+//		char prev = ' ';
+//		for (int i = 0; i < text.length(); i++) {
+//			if (inside) {
+//				if (charArr[i] == ' ') {
+//					// it's not a variable if it contains a space
+//					inside = false;
+//					variable = new StringBuilder();
+//				}
+//				variable.append(charArr[i]);
+//				if (charArr[i] == '%') {
+//					// end of the variable
+//					inside = false;
+//					String finalVariable = variable.toString();
+//					variable = new StringBuilder();
+//					if (!variables.contains(finalVariable)) {
+//						variables.add(finalVariable);
+//					}
+//				}
+//      } else if (prev != '{' && charArr[i] == '%') {
+//        inside = true;
+//        variable.append('%');
+//      }
+//      prev = charArr[i];
+//		}
+//		return variables;
 	}
 
 	/**
