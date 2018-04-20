@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU General Public License along with this program.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package pl.betoncraft.betonquest.compatibility.liquidmessages;
+package pl.betoncraft.betonquest.compatibility.liquify;
 
 import club.kidgames.liquid.api.LiquidExtenderRegistry;
 import club.kidgames.liquid.api.LiquidRenderEngine;
@@ -20,10 +20,8 @@ import club.kidgames.liquid.plugin.LiquidRuntime;
 import pl.betoncraft.betonquest.BetonQuest;
 import pl.betoncraft.betonquest.compatibility.Integrator;
 
-public class LiquidMessagesAPIIntegrator implements Integrator {
-
-
-  public LiquidMessagesAPIIntegrator() {
+public class LiquifyIntegrator implements Integrator {
+  public LiquifyIntegrator() {
   }
 
   @Override
@@ -31,7 +29,7 @@ public class LiquidMessagesAPIIntegrator implements Integrator {
     final LiquidRenderEngine engine = LiquidRuntime.getEngine();
     final LiquidExtenderRegistry registry = LiquidRuntime.getRegistry();
 
-    BetonQuest.getInstance().registerVariable("liquid", LiquidVariable.class);
+    BetonQuest.getInstance().registerVariable("liquify", LiquidVariable.class);
     registry.registerPlaceholder(new BetonQuestLiquidPlaceholder("BetonQuest", "beton"));
     BetonQuest.getInstance().addConversationFilter(new LiquidConversationFilter(engine));
   }

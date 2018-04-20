@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package pl.betoncraft.betonquest.compatibility.liquidmessages;
+package pl.betoncraft.betonquest.compatibility.liquify;
 
 import club.kidgames.liquid.api.PlaceholderExtender;
 import org.bukkit.entity.Player;
