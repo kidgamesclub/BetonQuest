@@ -87,7 +87,7 @@ public class JoinQuitListener implements Listener {
 			playerData.getJournal().update();
 		}
 		if (playerData.getConversation() != null) {
-			new ConversationResumer(playerID, playerData.getConversation());
+			new ConversationResumer(instance, playerID, playerData.getConversation());
 		}
 	}
 

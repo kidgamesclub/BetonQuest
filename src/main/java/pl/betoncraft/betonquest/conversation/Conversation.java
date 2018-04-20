@@ -1,17 +1,17 @@
 /**
  * BetonQuest - advanced quests for Bukkit
  * Copyright (C) 2016  Jakub "Co0sh" Sapalski
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -21,8 +21,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import java.util.logging.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -39,6 +41,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import pl.betoncraft.betonquest.BetonQuest;
 import pl.betoncraft.betonquest.ConditionID;
 import pl.betoncraft.betonquest.EventID;
+import pl.betoncraft.betonquest.api.ConversationFilter;
 import pl.betoncraft.betonquest.api.ConversationOptionEvent;
 import pl.betoncraft.betonquest.api.PlayerConversationEndEvent;
 import pl.betoncraft.betonquest.api.PlayerConversationStartEvent;
@@ -52,7 +55,7 @@ import pl.betoncraft.betonquest.utils.PlayerConverter;
 
 /**
  * Represents a conversation between player and NPC
- * 
+ *
  * @author Jakub Sapalski
  */
 public class Conversation implements Listener {
@@ -72,24 +75,28 @@ public class Conversation implements Listener {
 	private final Conversation conv;
 	private final BetonQuest plugin;
 	private boolean ended = false;
+	private boolean prompt = false;
 	private boolean messagesDelaying = false;
-	private ArrayList<String> messages = new ArrayList<>();
+	private List<String> messages = new ArrayList<>();
 
-	private HashMap<Integer, String> current = new HashMap<>();
+	private Map<Integer, String> current = new HashMap<>();
+	private final BetonQuest betonQuest;
+
 
 
 	/**
 	 * Starts a new conversation between player and npc at given location. It uses
 	 * starting options to determine where to start.
-	 * 
-	 * @param playerID
-	 *            ID of the player
-	 * @param conversationID
-	 *            ID of the conversation
-	 * @param location
-	 *            location where the conversation has been started
-	 */
-	public Conversation(String playerID, String conversationID, Location location) {
+	 *
+   * @param playerID
+   *            ID of the player
+   * @param conversationID
+*            ID of the conversation
+   * @param location
+   */
+	public Conversation(String playerID,
+                      String conversationID,
+                      Location location) {
 		this(playerID, conversationID, location, null);
 	}
 
@@ -97,20 +104,23 @@ public class Conversation implements Listener {
 	 * Starts a new conversation between player and npc at given location,
 	 * starting with the given option. If the option is null, then it will start
 	 * from the beginning.
-	 * 
-	 * @param playerID
-	 *            ID of the player
-	 * @param conversationID
-	 *            ID of the conversation
-	 * @param location
-	 *            location where the conversation has been started
-	 * @param option
-	 *            ID of the option from where to start
-	 */
-	public Conversation(final String playerID, final String conversationID,
-			final Location location, String option) {
+	 *
+   * @param betonQuest
+   * @param playerID
+   *            ID of the player
+   * @param conversationID
+*            ID of the conversation
+   * @param location
+*            location where the conversation has been started
+   * @param option
+   */
+	public Conversation(final String playerID,
+                      final String conversationID,
+                      final Location location,
+                      String option) {
+    this.betonQuest = BetonQuest.getInstance();
 
-		this.conv = this;
+    this.conv = this;
 		this.plugin = BetonQuest.getInstance();
 		this.playerID = playerID;
 		this.player = PlayerConverter.getPlayer(playerID);
@@ -151,7 +161,7 @@ public class Conversation implements Listener {
 
 	/**
 	 * Chooses the first available option.
-	 * 
+	 *
 	 * @param options
 	 *            list of option pointers separated by commas
 	 * @param force
@@ -178,7 +188,7 @@ public class Conversation implements Listener {
 			ConversationData currentData = plugin.getConversation(pack.getName() + "." + convName);
 			if (!force)
 				for (ConditionID condition : currentData.getConditionIDs(optionName, OptionType.NPC)) {
-					if (!BetonQuest.condition(this.playerID, condition)) {
+					if (!betonQuest.condition(this.playerID, condition)) {
 						continue options;
 					}
 				}
@@ -205,7 +215,24 @@ public class Conversation implements Listener {
 		for (String variable : BetonQuest.resolveVariables(text)) {
 			text = text.replace(variable, plugin.getVariableValue(data.getPackName(), variable, playerID));
 		}
+
+    this.prompt = text.startsWith("prompt:");
+		if(this.prompt) {
+      text = text.substring(7);
+    }
+
 		// print option to the player
+    if (plugin.getConversationFilters() != null) {
+      for (ConversationFilter conversationFilter : plugin.getConversationFilters()) {
+        if (conversationFilter != null) {
+          try {
+            text = conversationFilter.handleMessage(player, text);
+          } catch (Exception e) {
+            betonQuest.getLogger().log(Level.SEVERE, "Error resolving message: " + e, e);
+          }
+        }
+      }
+    }
 		inOut.setNpcResponse(data.getQuester(language), text);
 
 		new NPCEventRunner(option).runTask(plugin);
@@ -213,7 +240,7 @@ public class Conversation implements Listener {
 
 	/**
 	 * Passes given string as answer from player in a conversation.
-	 * 
+	 *
 	 * @param number
 	 *            the message player has sent on chat
 	 */
@@ -229,7 +256,7 @@ public class Conversation implements Listener {
 
 	/**
 	 * Prints answers the player can choose.
-	 * 
+	 *
 	 * @param options
 	 *            list of pointers to player options separated by commas
 	 */
@@ -238,7 +265,7 @@ public class Conversation implements Listener {
 		int i = 0;
 		answers: for (String option : options) {
 			for (ConditionID condition : data.getConditionIDs(option, OptionType.PLAYER)) {
-				if (!BetonQuest.condition(playerID, condition)) {
+				if (!betonQuest.condition(playerID, condition)) {
 					continue answers;
 				}
 			}
@@ -250,6 +277,15 @@ public class Conversation implements Listener {
 			for (String variable : BetonQuest.resolveVariables(text)) {
 				text = text.replace(variable, plugin.getVariableValue(data.getPackName(), variable, playerID));
 			}
+      if (plugin.getConversationFilters() != null) {
+        for (ConversationFilter filter : plugin.getConversationFilters()) {
+          try {
+            option = filter.handleMessage(player, option);
+          } catch (Exception e) {
+            //Log (not sure the best way)
+          }
+        }
+      }
 			inOut.addPlayerOption(text);
 		}
 		new BukkitRunnable() {
@@ -276,7 +312,7 @@ public class Conversation implements Listener {
 		inOut.end();
 		// fire final events
 		for (EventID event : data.getFinalEvents()) {
-			BetonQuest.event(playerID, event);
+			betonQuest.event(playerID, event);
 		}
 		// print message
 		Config.sendMessage(playerID, "conversation_end", new String[] { data.getQuester(language) }, "end");
@@ -286,7 +322,7 @@ public class Conversation implements Listener {
 		displayStoredMessages();
 		Bukkit.getServer().getPluginManager().callEvent(new PlayerConversationEndEvent(player, this));
 	}
-	
+
 	/**
 	 * @return whenever this conversation has already ended
 	 */
@@ -302,7 +338,7 @@ public class Conversation implements Listener {
 
 	/**
 	 * Checks if the movement of the player should be blocked.
-	 * 
+	 *
 	 * @return true if the movement should be blocked, false otherwise
 	 */
 	public boolean isMovementBlock() {
@@ -394,7 +430,7 @@ public class Conversation implements Listener {
 
 	/**
 	 * Checks if the player is in a conversation
-	 * 
+	 *
 	 * @param playerID
 	 *            ID of the player
 	 * @return if the player is on the list of active conversations
@@ -405,7 +441,7 @@ public class Conversation implements Listener {
 
 	/**
 	 * Gets this player's active conversation.
-	 * 
+	 *
 	 * @param playerID
 	 *            ID of the player
 	 * @return player's active conversation or null if there is no conversation
@@ -434,14 +470,14 @@ public class Conversation implements Listener {
 	public ConversationData getData() {
 		return data;
 	}
-	
+
 	/**
 	 * @return the package containing this conversation
 	 */
 	public ConfigPackage getPackage() {
 		return pack;
 	}
-	
+
 	/**
 	 * @return the ID of the conversation
 	 */
@@ -451,7 +487,7 @@ public class Conversation implements Listener {
 
 	/**
 	 * Starts the conversation, should be called asynchronously.
-	 * 
+	 *
 	 * @author Jakub Sapalski
 	 */
 	private class Starter extends BukkitRunnable {
@@ -523,7 +559,7 @@ public class Conversation implements Listener {
 
 	/**
 	 * Fires events from the option. Should be called in the main thread.
-	 * 
+	 *
 	 * @author Jakub Sapalski
 	 */
 	private class NPCEventRunner extends BukkitRunnable {
@@ -537,7 +573,7 @@ public class Conversation implements Listener {
 		public void run() {
 			// fire events
 			for (EventID event : data.getEventIDs(option, OptionType.NPC)) {
-				BetonQuest.event(playerID, event);
+				betonQuest.event(playerID, event);
 			}
 			new OptionPrinter(option).runTaskAsynchronously(plugin);
 		}
@@ -545,7 +581,7 @@ public class Conversation implements Listener {
 
 	/**
 	 * Fires events from the option. Should be called in the main thread.
-	 * 
+	 *
 	 * @author Jakub Sapalski
 	 */
 	private class PlayerEventRunner extends BukkitRunnable {
@@ -559,7 +595,7 @@ public class Conversation implements Listener {
 		public void run() {
 			// fire events
 			for (EventID event : data.getEventIDs(option, OptionType.PLAYER)) {
-				BetonQuest.event(playerID, event);
+				betonQuest.event(playerID, event);
 			}
 			new ResponsePrinter(option).runTaskAsynchronously(plugin);
 		}
@@ -567,7 +603,7 @@ public class Conversation implements Listener {
 
 	/**
 	 * Prints the NPC response to the player. Should be called asynchronously.
-	 * 
+	 *
 	 * @author Jakub Sapalski
 	 */
 	private class ResponsePrinter extends BukkitRunnable {
@@ -590,7 +626,7 @@ public class Conversation implements Listener {
 
 	/**
 	 * Prints the options to the player. Should be called asynchronously.
-	 * 
+	 *
 	 * @author Jakub Sapalski
 	 */
 	private class OptionPrinter extends BukkitRunnable {
@@ -609,7 +645,7 @@ public class Conversation implements Listener {
 
 	/**
 	 * Ends the conversation. Should be called in the main thread.
-	 * 
+	 *
 	 * @author Jakub Sapalski
 	 */
 	private class ConversationEnder extends BukkitRunnable {

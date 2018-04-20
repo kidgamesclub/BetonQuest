@@ -1,17 +1,17 @@
 /**
  * BetonQuest - advanced quests for Bukkit
  * Copyright (C) 2016  Jakub "Co0sh" Sapalski
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -39,6 +39,7 @@ import pl.betoncraft.betonquest.compatibility.effectlib.EffectLibIntegrator;
 import pl.betoncraft.betonquest.compatibility.heroes.HeroesIntegrator;
 import pl.betoncraft.betonquest.compatibility.holographicdisplays.HolographicDisplaysIntegrator;
 import pl.betoncraft.betonquest.compatibility.legendquest.LegendQuestIntegrator;
+import pl.betoncraft.betonquest.compatibility.liquidmessages.LiquidMessagesAPIIntegrator;
 import pl.betoncraft.betonquest.compatibility.magic.MagicIntegrator;
 import pl.betoncraft.betonquest.compatibility.mcmmo.McMMOIntegrator;
 import pl.betoncraft.betonquest.compatibility.mythicmobs.MythicMobsIntegrator;
@@ -57,7 +58,7 @@ import pl.betoncraft.betonquest.utils.Debug;
 
 /**
  * Compatibility with other plugins
- * 
+ *
  * @author Jakub Sapalski
  */
 public class Compatibility implements Listener {
@@ -68,29 +69,29 @@ public class Compatibility implements Listener {
 	private List<String> hooked = new ArrayList<>();
 
     private void hook(Plugin hook) {
-        
+
         // don't want to hook twice
         if (hooked.contains(hook.getName())) {
             return;
         }
-        
+
         // don't want to hook into disabled plugins
         if (!hook.isEnabled()) {
             return;
         }
-        
+
         String name = hook.getName();
         Integrator integrator = integrators.get(name);
-        
+
         // this plugin is not an integration
         if (integrator == null) {
             return;
         }
-        
+
         // hook into the plugin if it's enabled in the config
         if ("true".equalsIgnoreCase(plugin.getConfig().getString("hook." + name.toLowerCase()))) {
             Debug.broadcast("Hooking into " + name);
-            
+
             // log important information in case of an error
             try {
                 integrator.hook();
@@ -108,7 +109,7 @@ public class Compatibility implements Listener {
             }
         }
     }
-	
+
 	@EventHandler
 	public void onPluginEnable(PluginEnableEvent event) {
 	    hook(event.getPlugin());
@@ -117,6 +118,7 @@ public class Compatibility implements Listener {
 	public Compatibility() {
 		instance = this;
 
+    integrators.put("LiquidMessagesPlugin", new LiquidMessagesAPIIntegrator());
 		integrators.put("MythicMobs", new MythicMobsIntegrator());
 		integrators.put("Citizens", new CitizensIntegrator());
 		integrators.put("Vault", new VaultIntegrator());
@@ -145,9 +147,9 @@ public class Compatibility implements Listener {
 		for (Plugin hook : Bukkit.getPluginManager().getPlugins()) {
             hook(hook);
 		}
-		
+
 		Bukkit.getPluginManager().registerEvents(this, plugin);
-		
+
 		// hook into ProtocolLib
 		if (Bukkit.getPluginManager().isPluginEnabled("ProtocolLib")
 		        && plugin.getConfig().getString("hook.protocollib").equalsIgnoreCase("true")) {
@@ -169,20 +171,20 @@ public class Compatibility implements Listener {
 		}.runTask(plugin);
 
 	}
-	
+
 	/**
 	 * @return the list of hooked plugins
 	 */
 	public static List<String> getHooked() {
 	    return instance.hooked;
 	}
-	
+
 	public static void reload() {
 	    for (String hooked : getHooked()) {
 	        instance.integrators.get(hooked).reload();
 	    }
 	}
-	
+
 	public static void disable() {
         for (String hooked : getHooked()) {
             instance.integrators.get(hooked).close();
