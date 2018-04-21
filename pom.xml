@@ -161,9 +161,33 @@
 			<version>2.1.2</version>
 		</dependency>
     <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.16.20</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>one.util</groupId>
+      <artifactId>streamex</artifactId>
+      <version>0.6.6</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jetbrains.kotlin</groupId>
+      <artifactId>kotlin-stdlib</artifactId>
+      <version>1.2.40</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jetbrains.kotlin</groupId>
+      <artifactId>kotlin-stdlib-jdk8</artifactId>
+      <version>1.2.40</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>club.kidgames</groupId>
-      <artifactId>LiquidMessages</artifactId>
-      <version>0.1.5</version>
+      <artifactId>Liquify</artifactId>
+      <version>0.1.13</version>
       <scope>provided</scope>
       <exclusions>
         <exclusion>

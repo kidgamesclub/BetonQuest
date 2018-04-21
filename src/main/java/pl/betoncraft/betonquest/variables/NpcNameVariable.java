@@ -28,17 +28,24 @@ import pl.betoncraft.betonquest.conversation.Conversation;
  *
  * @author Jakub Sapalski
  */
-public class NpcNameVariable extends Variable {
+public class NpcNameVariable extends Variable<String> {
 
 	public NpcNameVariable(Instruction instruction) throws InstructionParseException {
 		super(instruction);
 	}
 
-	@Override
-	public String getValue(String playerID) {
-		Conversation conv = Conversation.getConversation(playerID);
-		if (conv == null)
-			return "";
-		return conv.getData().getQuester(BetonQuest.getInstance().getPlayerData(playerID).getLanguage());
-	}
+  /**
+   * This method should return a resolved value of variable for given player.
+   *
+   * @param playerID ID of the player
+   *
+   * @return the value of this variable
+   */
+  @Override
+  public String getValue(String playerID) {
+    Conversation conv = Conversation.getConversation(playerID);
+    if (conv == null)
+      return "";
+    return conv.getData().getQuester(BetonQuest.getInstance().getPlayerData(playerID).getLanguage());
+  }
 }

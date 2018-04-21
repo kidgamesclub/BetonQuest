@@ -26,7 +26,7 @@ import pl.betoncraft.betonquest.config.ConfigPackage;
  *
  * @author Jakub Sapalski
  */
-abstract public class Variable {
+abstract public class Variable<T> {
 
 	/**
 	 * Stores instruction string for the condition.
@@ -62,5 +62,10 @@ abstract public class Variable {
 	 *            ID of the player
 	 * @return the value of this variable
 	 */
-	public abstract String getValue(String playerID);
+	public abstract T getValue(String playerID);
+
+  public String getValueAsString(String playerID) {
+    final T value = getValue(playerID);
+    return value == null ? "" : value.toString();
+  }
 }

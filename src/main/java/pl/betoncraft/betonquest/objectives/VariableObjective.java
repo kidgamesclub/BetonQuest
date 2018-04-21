@@ -1,17 +1,17 @@
 /**
  * BetonQuest - advanced quests for Bukkit
  * Copyright (C) 2016  Jakub "Co0sh" Sapalski
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -36,11 +36,11 @@ import pl.betoncraft.betonquest.utils.PlayerConverter;
  * Creates variables based on what player is typing.
  * Will not run any events, will not check any conditions.
  * The only way to remove it is using "objective cancel" event.
- * 
+ *
  * @author Jakub Sapalski
  */
 public class VariableObjective extends Objective implements Listener {
-	
+
 	private final boolean noChat;
 
 	public VariableObjective(Instruction instruction) throws InstructionParseException {
@@ -62,7 +62,7 @@ public class VariableObjective extends Objective implements Listener {
 			HandlerList.unregisterAll(this);
 		}
 	}
-	
+
 	@EventHandler
 	public void onChat(AsyncPlayerChatEvent event) {
 		if (event.isCancelled()) {
@@ -85,7 +85,7 @@ public class VariableObjective extends Objective implements Listener {
 
 	/**
 	 * Stores specified string in this objective.
-	 * 
+	 *
 	 * @param playerID
 	 *            ID of the player
 	 * @param key
@@ -108,17 +108,17 @@ public class VariableObjective extends Objective implements Listener {
 	public String getDefaultDataInstruction() {
 		return "";
 	}
-	
+
 	@Override
-	public String getProperty(String name, String playerID) {
+	public String getReadableProperty(String name, String playerID) {
 		String value = ((VariableData) dataMap.get(playerID)).get(name);
 		return value == null ? "" : value;
 	}
-	
+
 	public static class VariableData extends ObjectiveData {
-		
+
 		private HashMap<String, String> variables = new HashMap<>();
-		
+
 		public VariableData(String instruction, String playerID, String objID) {
 			super(instruction, playerID, objID);
 			String[] rawVariables = instruction.split("\n");
@@ -129,16 +129,16 @@ public class VariableObjective extends Objective implements Listener {
 				}
 			}
 		}
-		
+
 		public String get(String key) {
 			return variables.get(key.toLowerCase());
 		}
-		
+
 		public void add(String key, String value) {
 			variables.put(key, value);
 			update();
 		}
-		
+
 		@Override
 		public String toString() {
 			StringBuilder builder = new StringBuilder();
@@ -147,7 +147,7 @@ public class VariableObjective extends Objective implements Listener {
 			}
 			return builder.toString().trim();
 		}
-		
+
 	}
 
 }

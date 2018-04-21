@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import java.util.logging.Level;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -41,7 +42,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import pl.betoncraft.betonquest.BetonQuest;
 import pl.betoncraft.betonquest.ConditionID;
 import pl.betoncraft.betonquest.EventID;
-import pl.betoncraft.betonquest.api.ConversationFilter;
+import pl.betoncraft.betonquest.api.MessageFilter;
 import pl.betoncraft.betonquest.api.ConversationOptionEvent;
 import pl.betoncraft.betonquest.api.PlayerConversationEndEvent;
 import pl.betoncraft.betonquest.api.PlayerConversationStartEvent;
@@ -222,17 +223,10 @@ public class Conversation implements Listener {
     }
 
 		// print option to the player
-    if (plugin.getConversationFilters() != null) {
-      for (ConversationFilter conversationFilter : plugin.getConversationFilters()) {
-        if (conversationFilter != null) {
-          try {
-            text = conversationFilter.handleMessage(player, text);
-          } catch (Exception e) {
-            betonQuest.getLogger().log(Level.SEVERE, "Error resolving message: " + e, e);
-          }
-        }
-      }
-    }
+    text = BetonQuest.getInstance().renderMessage(text,
+          "player", player,
+          Pair.of("conversation", conv));
+
 		inOut.setNpcResponse(data.getQuester(language), text);
 
 		new NPCEventRunner(option).runTask(plugin);
@@ -277,15 +271,7 @@ public class Conversation implements Listener {
 			for (String variable : BetonQuest.resolveVariables(text)) {
 				text = text.replace(variable, plugin.getVariableValue(data.getPackName(), variable, playerID));
 			}
-      if (plugin.getConversationFilters() != null) {
-        for (ConversationFilter filter : plugin.getConversationFilters()) {
-          try {
-            option = filter.handleMessage(player, option);
-          } catch (Exception e) {
-            //Log (not sure the best way)
-          }
-        }
-      }
+      text = plugin.executeMessage(text, "player", player, Pair.of("conversation", conv));
 			inOut.addPlayerOption(text);
 		}
 		new BukkitRunnable() {

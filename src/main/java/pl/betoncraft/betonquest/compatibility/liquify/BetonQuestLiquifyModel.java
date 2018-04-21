@@ -18,26 +18,37 @@
 package pl.betoncraft.betonquest.compatibility.liquify;
 
 import club.kidgames.liquid.api.PlaceholderExtender;
+import club.kidgames.liquid.api.models.LiquidModelMap;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 import pl.betoncraft.betonquest.BetonQuest;
 import pl.betoncraft.betonquest.utils.PlayerConverter;
 
-public class BetonQuestLiquidPlaceholder extends PlaceholderExtender {
+public class BetonQuestLiquifyModel extends PlaceholderExtender {
 
-  public BetonQuestLiquidPlaceholder(String pluginId, String identifier) {
+  public BetonQuestLiquifyModel(String pluginId, String identifier) {
     super(pluginId, identifier);
+  }
+
+  @Nullable
+  @Override
+  public Object resolvePlaceholder(LiquidModelMap liquidModelMap) {
+    String pack = null;
+    if (liquidModelMap.getPlayer() != null) {
+      String identifier = getName();
+      if (identifier.contains(":")) {
+        pack = identifier.substring(0, identifier.indexOf(':'));
+        identifier = identifier.substring(identifier.indexOf(':') + 1);
+      } else {
+        pack = BetonQuest.getInstance().getConfig().getString("default_package", "default");
+      }
+      return BetonQuest.getInstance().getVariableValue(pack, '%' + identifier + '%', PlayerConverter.getID(player));
+    }
+
   }
 
   @Override
   public Object resolvePlaceholder(Player player) {
-    String pack = null;
-    String identifier = getName();
-    if (identifier.contains(":")) {
-      pack = identifier.substring(0, identifier.indexOf(':'));
-      identifier = identifier.substring(identifier.indexOf(':') + 1);
-    } else {
-      pack = BetonQuest.getInstance().getConfig().getString("default_package", "default");
-    }
-    return BetonQuest.getInstance().getVariableValue(pack, '%' + identifier + '%', PlayerConverter.getID(player));
+
   }
 }

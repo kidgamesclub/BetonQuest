@@ -1,17 +1,17 @@
 /**
  * BetonQuest - advanced quests for Bukkit
  * Copyright (C) 2016  Jakub "Co0sh" Sapalski
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -37,14 +37,14 @@ public class LocationData {
 	private Variable variable;
 	private Vector vector = null;
 	private Type type;
-	
+
 	private enum Type {
 		LOCATION, VARIABLE
 	}
-	
+
 	/**
 	 * Parses the location string.
-	 * 
+	 *
 	 * @param packName
 	 *            name of the package, required for variable resolution
 	 * @param string
@@ -96,7 +96,7 @@ public class LocationData {
 			loc = parseAbsoluteFormat(base);
 		}
 	}
-	
+
 	private Location parseAbsoluteFormat(String abs) throws InstructionParseException {
 		String[] parts = abs.split(";");
 		if (parts.length < 4) {
@@ -122,7 +122,7 @@ public class LocationData {
 		loc = new Location(world, x, y, z, yaw, pitch);
 		return loc;
 	}
-	
+
 	private Location getBaseLoc(String playerID) throws QuestRuntimeException {
 		switch (type) {
 		case LOCATION:
@@ -132,7 +132,7 @@ public class LocationData {
 				throw new QuestRuntimeException("Variable location cannot accessed without the player;"
 						+ " consider changing it to absolute coordinates");
 			}
-			String value = variable.getValue(playerID);
+			String value = variable.getValueAsString(playerID);
 			try {
 				return loc = parseAbsoluteFormat(value);
 			} catch (InstructionParseException e) {
@@ -141,7 +141,7 @@ public class LocationData {
 		default: return null;
 		}
 	}
-	
+
 	/**
 	 * @param playerID
 	 *            ID of the player, needed for location resolution
@@ -153,5 +153,5 @@ public class LocationData {
 	public Location getLocation(String playerID) throws QuestRuntimeException {
 		return getBaseLoc(playerID).clone().add(vector);
 	}
-	
+
 }

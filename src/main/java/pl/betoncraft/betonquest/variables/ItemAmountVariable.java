@@ -1,17 +1,17 @@
 /**
  * BetonQuest - advanced quests for Bukkit
  * Copyright (C) 2016  Jakub "Co0sh" Sapalski
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -32,10 +32,10 @@ import pl.betoncraft.betonquest.utils.PlayerConverter;
 /**
  * Allows you to count items in player's inventory and display number remaining
  * to some amount.
- * 
+ *
  * @author Jakub Sapalski
  */
-public class ItemAmountVariable extends Variable {
+public class ItemAmountVariable extends Variable<Integer> {
 
 	private QuestItem questItem;
 	private Type type;
@@ -60,7 +60,7 @@ public class ItemAmountVariable extends Variable {
 	}
 
 	@Override
-	public String getValue(String playerID) {
+	public Integer getValue(String playerID) {
 		Player player = PlayerConverter.getPlayer(playerID);
 		int playersAmount = 0;
 		for (ItemStack item : player.getInventory().getContents()) {
@@ -84,11 +84,11 @@ public class ItemAmountVariable extends Variable {
 		}
 		switch (type) {
 		case AMOUNT:
-			return Integer.toString(playersAmount);
+      return playersAmount;
 		case LEFT:
-			return Integer.toString(amount - playersAmount);
+      return amount - playersAmount;
 		default:
-			return "";
+			return 0;
 		}
 	}
 

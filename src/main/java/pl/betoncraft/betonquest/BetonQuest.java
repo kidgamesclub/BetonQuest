@@ -17,6 +17,8 @@
  */
 package pl.betoncraft.betonquest;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -29,6 +31,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
 import org.bstats.Metrics;
@@ -37,7 +40,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import pl.betoncraft.betonquest.api.Condition;
-import pl.betoncraft.betonquest.api.ConversationFilter;
+import pl.betoncraft.betonquest.api.MessageFilter;
 import pl.betoncraft.betonquest.api.Objective;
 import pl.betoncraft.betonquest.api.QuestEvent;
 import pl.betoncraft.betonquest.api.Variable;
@@ -214,7 +217,7 @@ public final class BetonQuest extends JavaPlugin {
 	private Map<ObjectiveID, Objective> objectives = new HashMap<>();
 	private Map<String, ConversationData> conversations = new HashMap<>();
 	private Map<VariableID, Variable> variables = new HashMap<>();
-  private List<ConversationFilter> messageFilters = new ArrayList<>();
+  private List<MessageFilter> messageFilters = new ArrayList<>();
 
   /**
    * Takes one character on either side of the variable to support checking for liquify placeholders
@@ -1183,7 +1186,7 @@ public final class BetonQuest extends JavaPlugin {
 			Variable var = createVariable(Config.getPackages().get(packName), name);
 			if (var == null)
 				return "could not resolve variable";
-			return var.getValue(playerID);
+			return var.getValueAsString(playerID);
 		} catch (InstructionParseException e) {
 			return "could not resolve variable";
 		}
@@ -1217,11 +1220,35 @@ public final class BetonQuest extends JavaPlugin {
 		objectives.put(rename, objectives.remove(name));
 	}
 
-  public List<ConversationFilter> getConversationFilters() {
-    return messageFilters;
+  public <X> X executeMessage(String input, String key, Object model, Pair<String, Object>... moreModels) {
+    final Builder<Pair<String, Object>> models = ImmutableList.builder();
+    models.add(Pair.of(key, model));
+    for (Pair<String, Object> addtlModel : moreModels) {
+      models.add(addtlModel);
+    }
+
+    return executeMessage(input, models.build());
   }
 
-  public void addConversationFilter(ConversationFilter conversationFilter) {
+  @SuppressWarnings("unchecked")
+  public <X> X executeMessage(String input, List<Pair<String, Object>> models) {
+    Object output = input;
+    for (MessageFilter messageFilter : messageFilters) {
+      final String message = output == null ? "" : output.toString();
+      output = messageFilter.processMessage(message, models);
+    }
+
+    return (X) output;
+  }
+
+  public String renderMessage(String input, String key, Object model, Pair<String, Object>... moreModels) {
+    Object output = executeMessage(input, key, model, moreModels);
+    return output == null ? "" : output.toString();
+  }
+
+
+
+  public void addMessageFilter(MessageFilter conversationFilter) {
     this.messageFilters.add(conversationFilter);
   }
 }

@@ -1,17 +1,17 @@
 /**
  * BetonQuest - advanced quests for Bukkit
  * Copyright (C) 2016  Jakub "Co0sh" Sapalski
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -27,10 +27,10 @@ import pl.betoncraft.betonquest.utils.PlayerConverter;
 
 /**
  * Resolves to player's karma.
- * 
+ *
  * @author Jakub Sapalski
  */
-public class LQKarmaVariable extends Variable {
+public class LQKarmaVariable extends Variable<Long> {
 
 	private Main lq;
 	private Type type;
@@ -51,18 +51,25 @@ public class LQKarmaVariable extends Variable {
 		lq = ((Main) Bukkit.getPluginManager().getPlugin("LegendQuest"));
 	}
 
-	@Override
-	public String getValue(String playerID) {
-		long current = lq.getPlayers().getPC(PlayerConverter.getPlayer(playerID)).karma;
-		switch (type) {
-		case AMOUNT:
-			return Long.toString(current);
-		case LEFT:
-			return Long.toString(amount - current);
-		default:
-			return "";
-		}
-	}
+  /**
+   * This method should return a resolved value of variable for given player.
+   *
+   * @param playerID ID of the player
+   *
+   * @return the value of this variable
+   */
+  @Override
+  public Long getValue(String playerID) {
+    long current = lq.getPlayers().getPC(PlayerConverter.getPlayer(playerID)).karma;
+    switch (type) {
+      case AMOUNT:
+        return current;
+      case LEFT:
+        return amount - current;
+      default:
+        return 0L;
+    }
+  }
 
 	private enum Type {
 		AMOUNT, LEFT

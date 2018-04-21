@@ -1,17 +1,17 @@
 /**
  * BetonQuest - advanced quests for Bukkit
  * Copyright (C) 2016  Jakub "Co0sh" Sapalski
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -23,7 +23,7 @@ import pl.betoncraft.betonquest.utils.Debug;
 
 /**
  * Represents a number which might also be a variable.
- * 
+ *
  * @author Jakub Sapalski
  */
 public class VariableNumber {
@@ -34,7 +34,7 @@ public class VariableNumber {
 	/**
 	 * Parses the string as a number or saves it as a variable if it's not a
 	 * number.
-	 * 
+	 *
 	 * @param packName
 	 *            the package in which the variable is defined
 	 * @param variable
@@ -57,7 +57,7 @@ public class VariableNumber {
 
 	/**
 	 * Creates the VariableNumber using specified number.
-	 * 
+	 *
 	 * @param number
 	 *            the number to use
 	 */
@@ -67,7 +67,7 @@ public class VariableNumber {
 
 	/**
 	 * Creates the VariableNumber using specified number.
-	 * 
+	 *
 	 * @param number
 	 *            the number to use
 	 */
@@ -78,7 +78,7 @@ public class VariableNumber {
 	/**
 	 * Returns an integer represented by this variable. If it's a double, this
 	 * method will return the floor of it.
-	 * 
+	 *
 	 * @param playerID
 	 *            ID of the player for whom the variable should be resolved
 	 * @return the integer represented by this variable number
@@ -90,7 +90,7 @@ public class VariableNumber {
 
 	/**
 	 * Returns a double represented by this variable.
-	 * 
+	 *
 	 * @param playerID
 	 *            ID of the player for whom the variable should be resolved
 	 * @return the double represented by this variable number
@@ -106,7 +106,7 @@ public class VariableNumber {
 		} else if (playerID == null) {
 			return 0;
 		} else {
-			String resolved = variable.getValue(playerID);
+			String resolved = variable.getValueAsString(playerID);
 			double parsed = 0;
 			try {
 				parsed = Double.parseDouble(resolved);

@@ -21,26 +21,12 @@ import pl.betoncraft.betonquest.BetonQuest;
 import pl.betoncraft.betonquest.compatibility.Integrator;
 
 public class LiquifyIntegrator implements Integrator {
-  public LiquifyIntegrator() {
-  }
 
   @Override
   public void hook() {
-    final LiquidRenderEngine engine = LiquidRuntime.getEngine();
+    final LiquidRenderEngine engine = LiquidRuntime.getRenderer();
     final LiquidExtenderRegistry registry = LiquidRuntime.getRegistry();
-
-    BetonQuest.getInstance().registerVariable("liquify", LiquidVariable.class);
-    registry.registerPlaceholder(new BetonQuestLiquidPlaceholder("BetonQuest", "beton"));
-    BetonQuest.getInstance().addConversationFilter(new LiquidConversationFilter(engine));
-  }
-
-  @Override
-  public void reload() {
-
-  }
-
-  @Override
-  public void close() {
-
+    registry.registerPlaceholder(new BetonQuestLiquifyModel("BetonQuest", "beton"));
+    BetonQuest.getInstance().addMessageFilter(new LiquidMessageFilter(engine));
   }
 }

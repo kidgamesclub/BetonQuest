@@ -18,19 +18,26 @@
 package pl.betoncraft.betonquest.compatibility.liquify;
 
 import club.kidgames.liquid.api.LiquidRenderEngine;
-import org.bukkit.entity.Player;
-import pl.betoncraft.betonquest.api.ConversationFilter;
+import club.kidgames.liquid.api.models.LiquidModelMap;
+import java.util.List;
+import java.util.function.Consumer;
+import one.util.streamex.StreamEx;
+import org.apache.commons.lang3.tuple.Pair;
+import pl.betoncraft.betonquest.api.MessageFilter;
 
-public class LiquidConversationFilter implements ConversationFilter {
+public class LiquidMessageFilter implements MessageFilter {
 
   private final LiquidRenderEngine engine;
 
-  public LiquidConversationFilter(LiquidRenderEngine engine) {
+  public LiquidMessageFilter(LiquidRenderEngine engine) {
     this.engine = engine;
   }
 
   @Override
-  public String handleMessage(Player player, String message) {
-    return engine.render(message, player);
+  public <X> X processMessage(String message, List<Pair<String, Object>> model) {
+    final List<Consumer<LiquidModelMap>> modelSuppliers = StreamEx.of(model)
+          .map(item -> (Consumer<LiquidModelMap>) map -> map.put(item.getKey(), item.getValue()))
+          .toList();
+    return (X) engine.execute(message, modelSuppliers);
   }
 }
