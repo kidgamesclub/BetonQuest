@@ -18,10 +18,12 @@
 package pl.betoncraft.betonquest.objectives;
 
 import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.LinkedList;
-import java.util.Map.Entry;
 
+import java.util.Optional;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -37,7 +39,7 @@ import pl.betoncraft.betonquest.config.Config;
  *
  * @author Jakub Sapalski
  */
-public class DelayObjective extends Objective {
+public class DelayObjective extends Objective<Duration> {
 
 	private final double delay;
 	private BukkitTask runnable;
@@ -69,15 +71,14 @@ public class DelayObjective extends Objective {
 			public void run() {
 				LinkedList<String> players = new LinkedList<>();
 				long time = new Date().getTime();
-				for (Entry<String, ObjectiveData> entry : dataMap.entrySet()) {
-					String playerID = entry.getKey();
-					DelayData playerData = (DelayData) entry.getValue();
-					if (time >= playerData.getTime() && checkConditions(playerID)) {
-						// don't complete the objective, it will throw CME/
-						// store the player instead, complete later
-						players.add(playerID);
-					}
-				}
+        dataMap.forEach((playerID, value) -> {
+          DelayData playerData = (DelayData) value;
+          if (time >= playerData.getTime() && checkConditions(playerID)) {
+            // don't complete the objective, it will throw CME/
+            // store the player instead, complete later
+            players.add(playerID);
+          }
+        });
 				for (String playerID : players) {
 					completeObjective(playerID);
 				}
@@ -96,7 +97,26 @@ public class DelayObjective extends Objective {
 		return Long.toString(new Date().getTime() + (long) delay);
 	}
 
-	@Override
+  /**
+   * This method should return various properties of the objective, formatted as readable Strings. An example would be
+   * "5h 5min" for "time_left" keyword in "delay" objective or "12" for keyword "mobs_killed" in "mobkill" objective.
+   * The method is not abstract since not all objectives need to have properties, i.e. "die" objective. By default it
+   * returns an empty string.
+   *
+   * @param name     the name of the property you need to return; you can parse it to extract additional information
+   * @param playerID ID of the player for whom the property is to be returned
+   *
+   * @return the property with given name
+   */
+  @Override
+  public Optional<Duration> getProperty(String name, String playerID) {
+    return Optional.ofNullable((DelayData) dataMap.get(playerID))
+          .map(DelayData::getTime)
+          .map(Instant::ofEpochMilli)
+          .map(start -> Duration.between(start, new Date().toInstant()));
+  }
+
+  @Override
 	public String getReadableProperty(String name, String playerID) {
 		if (name.equalsIgnoreCase("left")) {
 			String lang = BetonQuest.getInstance().getPlayerData(playerID).getLanguage();
@@ -104,8 +124,9 @@ public class DelayObjective extends Objective {
 			String hoursWord = Config.getMessage(lang, "hours");
 			String minutesWord = Config.getMessage(lang, "minutes");
 			String secondsWord = Config.getMessage(lang, "seconds");
-			long timeLeft = ((DelayData) dataMap.get(playerID)).getTime() - new Date().getTime();
-			long s = (timeLeft / (1000)) % 60;
+      final Duration duration = getProperty(name, playerID).orElse(Duration.ZERO);
+      final long timeLeft = duration.toMillis();
+      long s = (timeLeft / (1000)) % 60;
 			long m = (timeLeft / (1000 * 60)) % 60;
 			long h = (timeLeft / (1000 * 60 * 60)) % 24;
 			long d = (timeLeft / (1000 * 60 * 60 * 24));

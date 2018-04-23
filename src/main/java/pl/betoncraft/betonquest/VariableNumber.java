@@ -100,7 +100,7 @@ public class VariableNumber {
 		return resolveVariable(playerID);
 	}
 
-	private double resolveVariable(String playerID) throws QuestRuntimeException {
+	private double resolveVariable(String playerID) {
 		if (variable == null) {
 			return number;
 		} else if (playerID == null) {

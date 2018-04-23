@@ -29,21 +29,8 @@ import pl.betoncraft.betonquest.utils.PlayerConverter;
 @Getter
 public class MoneyVariable extends DoubleVariable {
 
-  private ValueType type;
-  private int amount;
-
   public MoneyVariable(Instruction instruction) throws InstructionParseException {
     super(instruction);
-    if (instruction.next().equalsIgnoreCase("amount")) {
-      type = ValueType.AMOUNT;
-    } else if (instruction.current().toLowerCase().startsWith("left:")) {
-      type = ValueType.LEFT;
-      try {
-        amount = Integer.parseInt(instruction.current().substring(5));
-      } catch (NumberFormatException e) {
-        throw new InstructionParseException("Could not parse money amount");
-      }
-    }
   }
 
   @Override

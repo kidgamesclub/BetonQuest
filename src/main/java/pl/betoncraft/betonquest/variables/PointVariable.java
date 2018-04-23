@@ -34,8 +34,6 @@ import pl.betoncraft.betonquest.api.Variable;
 public class PointVariable extends IntegerVariable {
 
   protected String category;
-  protected ValueType type;
-  protected int amount;
 
   public PointVariable(Instruction instruction) throws InstructionParseException {
     super(instruction);
@@ -44,19 +42,6 @@ public class PointVariable extends IntegerVariable {
       category = category.replace('*', '.');
     } else {
       category = instruction.getPackage().getName() + "." + category;
-    }
-    if (instruction.next().equalsIgnoreCase("amount")) {
-      type = ValueType.AMOUNT;
-    } else if (instruction.current().toLowerCase().startsWith("left:")) {
-      type = ValueType.LEFT;
-      try {
-        amount = Integer.parseInt(instruction.current().substring(5));
-      } catch (NumberFormatException e) {
-        throw new InstructionParseException("Could not parse point amount");
-      }
-    } else {
-      throw new InstructionParseException(String.format("Unknown variable type: '%s'",
-            instruction.current()));
     }
   }
 

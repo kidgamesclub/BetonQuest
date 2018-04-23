@@ -37,21 +37,8 @@ import pl.betoncraft.betonquest.utils.PlayerConverter;
 @Getter
 public class RaCExpVariable extends IntegerVariable {
 
-	private ValueType type;
-	private int amount;
-
 	public RaCExpVariable(Instruction instruction) throws InstructionParseException {
 		super(instruction);
-		if (instruction.next().equalsIgnoreCase("amount")) {
-			type = AMOUNT;
-		} else if (instruction.current().toLowerCase().startsWith("left:")) {
-			type = LEFT;
-			try {
-				amount = Integer.parseInt(instruction.current().substring(5));
-			} catch (NumberFormatException e) {
-				throw new InstructionParseException("Could not parse experience amount");
-			}
-		}
 	}
 
 	@Override
